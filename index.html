@@ -2,88 +2,34 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Explora - Registro de Mantenciones</title>
+<title>Explora - Registro de Radios</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 
 <style>
-body {
-  font-family: Inter, Arial, sans-serif;
-  background: #f0f4f8;
-  padding: 20px;
-}
-
-h2, h3 { margin-bottom: 10px; }
-
-label {
-  font-size: 13px;
-}
-
-input, select, textarea, button {
-  width: 100%;
-  padding: 8px;
-  margin: 6px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-}
-
-button {
-  background: #2563eb;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #1d4ed8;
-}
-
-.card {
-  background: white;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 10px;
-  border: 1px solid #ddd;
-}
-
-#qr img {
-  margin-top: 10px;
-  width: 180px;
-}
+body { font-family: Arial, sans-serif; background: #0c0c0c; color: #d4af37; padding: 15px; }
+.card { background: #111; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #d4af37; }
+input, select, textarea, button { width: 100%; padding: 6px; margin-top: 4px; border-radius: 6px; border: none; }
+button { background: #d4af37; color: black; font-weight: bold; }
 </style>
 </head>
 
 <body>
 
-<h2>📡 Registro de Mantención de Radios - Explora</h2>
+<h2>📡 Registro de Radios - Explora</h2>
 
 <div class="card">
-  <h3>ID del equipo</h3>
-  <label>ID (solo si el radio ya existe, si no dejar vacío)</label>
-  <input id="id_radio" placeholder="Ej: RADIO-1732456789000">
+  <label>ID (dejar vacío si es radio nuevo)</label>
+  <input id="id_radio">
 </div>
 
 <div class="card">
-  <h3>Datos del servicio</h3>
-
-  <label>Empresa</label>
-  <input id="empresa">
-
-  <label>Solicitante</label>
-  <input id="solicitante">
-
-  <label>OC</label>
-  <input id="oc">
-
-  <label>Lugar operación</label>
-  <input id="lugar">
-
-  <label>Nombre técnico</label>
-  <input id="tecnico">
-
-  <label>Motivo intervención</label>
+  <h3>Datos Servicio</h3>
+  <input id="empresa" placeholder="Empresa">
+  <input id="solicitante" placeholder="Solicitante">
+  <input id="lugar" placeholder="Lugar operación">
+  <input id="tecnico" placeholder="Técnico">
   <select id="motivo">
     <option>Instalación</option>
     <option>Mantención</option>
@@ -93,164 +39,109 @@ button:hover {
 </div>
 
 <div class="card">
-  <h3>Datos del vehículo</h3>
-
-  <label>Patente unidad</label>
-  <input id="patente">
-
-  <label>Tipo vehículo</label>
+  <h3>Datos Vehículo</h3>
+  <input id="patente" placeholder="Patente">
   <select id="tipo_vehiculo">
     <option>Camioneta</option>
     <option>Camión</option>
     <option>Bus</option>
     <option>Maquinaria</option>
   </select>
-
-  <label>Marca vehículo</label>
-  <input id="marca">
-
-  <label>Modelo vehículo</label>
-  <input id="modelo_vehiculo">
-
-  <label>Año vehículo</label>
-  <input id="anio">
+  <input id="marca" placeholder="Marca">
+  <input id="modelo_vehiculo" placeholder="Modelo vehículo">
+  <input id="anio" placeholder="Año">
 </div>
 
 <div class="card">
-  <h3>Datos del radio</h3>
-
-  <label>Producto / Modelo radio</label>
-  <input id="modelo">
-
-  <label>Número de Serie</label>
-  <input id="serie">
-
-  <label>Tipo servicio</label>
-  <select id="tipo">
+  <h3>Datos Radio</h3>
+  <input id="modelo_radio" placeholder="Modelo radio">
+  <input id="serie" placeholder="Número de serie">
+  <select id="tipo_servicio">
     <option>Mantención</option>
     <option>Instalación</option>
     <option>Revisión</option>
   </select>
-
-  <label>Fecha Venta</label>
-  <input type="date" id="fecha_venta">
-
-  <label>Fecha Instalación</label>
-  <input type="date" id="fecha_instalacion">
-
-  <label>Observaciones</label>
-  <textarea id="observaciones"></textarea>
-
-  <button onclick="guardarRegistro()">Guardar y Generar QR</button>
 </div>
 
-<h3>QR Generado:</h3>
-<div id="qr"></div>
+<div class="card">
+  <label>Fecha venta</label>
+  <input type="date" id="fecha_venta">
 
-<h3>📋 Registros (REGISTRO_ACTUAL):</h3>
+  <label>Fecha instalación</label>
+  <input type="date" id="fecha_instalacion">
+
+  <textarea id="observaciones" placeholder="Observaciones"></textarea>
+
+  <button onclick="guardarRegistro()">Guardar y generar QR</button>
+</div>
+
+<h3>📋 Resumen de registros</h3>
 <div id="lista"></div>
 
-<script>
-// 🔗 Pega aquí tu URL de Apps Script (Aplicación Web)
-const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec";
+<h3>QR generado</h3>
+<div id="qr"></div>
 
-// URL base de tu GitHub Pages
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec";
 const BASE_WEB = "https://snkbcvf.github.io/EXPLORA-SERVICIOS";
 
-function generarID(){
+function generarID() {
   return "RADIO-" + Date.now();
 }
 
-function calcularProxima(fecha){
-  if(!fecha) return "";
-  const d = new Date(fecha);
-  d.setMonth(d.getMonth() + 6);
-  return d.toISOString().split("T")[0];
+function formatFecha(f){
+  if(!f) return "";
+  const d = new Date(f);
+  return d.toLocaleDateString("es-CL");
 }
 
-function formatoLatino(fechaISO) {
-  if(!fechaISO) return "";
-  const p = fechaISO.split("-");
-  return `${p[2]}/${p[1]}/${p[0]}`;
-}
-
-// Guardar nuevo registro (o actualizar si ID existe)
+// ✅ GUARDAR REGISTRO
 function guardarRegistro() {
 
-  let id = document.getElementById("id_radio").value.trim();
-  if (!id) {
-    id = generarID();
-  }
+  let id = document.getElementById("id_radio").value;
+  if(!id) id = generarID();
 
   const datos = {
     id: id,
-    empresa: document.getElementById("empresa").value,
-    solicitante: document.getElementById("solicitante").value,
-    oc: document.getElementById("oc").value,
-    lugar: document.getElementById("lugar").value,
-    tecnico: document.getElementById("tecnico").value,
-    motivo: document.getElementById("motivo").value,
-    patente: document.getElementById("patente").value,
-    tipo_vehiculo: document.getElementById("tipo_vehiculo").value,
-    marca: document.getElementById("marca").value,
-    modelo_vehiculo: document.getElementById("modelo_vehiculo").value,
-    anio: document.getElementById("anio").value,
-    modelo_radio: document.getElementById("modelo").value,
-    serie: document.getElementById("serie").value,
-    tipo: document.getElementById("tipo").value,
-    fecha_venta: document.getElementById("fecha_venta").value,
-    fecha_instalacion: document.getElementById("fecha_instalacion").value,
-    prox_mantencion: calcularProxima(
-      document.getElementById("fecha_instalacion").value ||
-      document.getElementById("fecha_venta").value
-    ),
-    observaciones: document.getElementById("observaciones").value
+    empresa: empresa.value,
+    solicitante: solicitante.value,
+    lugar: lugar.value,
+    tecnico: tecnico.value,
+    motivo: motivo.value,
+    patente: patente.value,
+    tipo_vehiculo: tipo_vehiculo.value,
+    marca: marca.value,
+    modelo_vehiculo: modelo_vehiculo.value,
+    anio: anio.value,
+    modelo_radio: modelo_radio.value,
+    serie: serie.value,
+    tipo: tipo_servicio.value,
+    fecha_venta: fecha_venta.value,
+    fecha_instalacion: fecha_instalacion.value,
+    prox_mantencion: "",
+    observaciones: observaciones.value
   };
 
-  // Enviar a Apps Script (crea o actualiza + bitácora)
   fetch(API_URL, {
     method: "POST",
-    mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datos)
   });
 
-  // Mostrar QR con la URL de vista
   generarQR(id);
-
-  // Dejar el ID visible para futuras actualizaciones
   document.getElementById("id_radio").value = id;
 
-  // Recargar panel
-  setTimeout(cargarRegistros, 1500);
+  setTimeout(cargarRegistros, 1200);
 }
 
-// Generar QR
-function generarQR(id) {
-
-  const url = `${BASE_WEB}/vista.html?id=${id}`;
-
-  const qr = qrcode(0, "L");
-  qr.addData(url);
-  qr.make();
-
-  document.getElementById("qr").innerHTML = "";
-
-  const img = document.createElement("img");
-  img.src = qr.createDataURL(6,4);
-
-  document.getElementById("qr").appendChild(img);
-}
-
-// Cargar registros desde REGISTRO_ACTUAL
+// ✅ CARGAR PANEL
 function cargarRegistros() {
-
   fetch(API_URL + "?all=true")
     .then(r => r.json())
     .then(data => {
 
-      const contenedor = document.getElementById("lista");
-      contenedor.innerHTML = "";
+      lista.innerHTML = "";
 
       data.forEach(r => {
 
@@ -268,21 +159,34 @@ function cargarRegistros() {
           <b>Vehículo:</b> ${r[8]} / ${r[9]} / ${r[10]} / ${r[11]}<br>
           <b>Radio:</b> ${r[12]} (${r[13]})<br>
           <b>Tipo servicio:</b> ${r[14]}<br>
-          <b>Fecha venta:</b> ${formatoLatino(r[15])}<br>
-          <b>Fecha instalación:</b> ${formatoLatino(r[16])}<br>
-          <b>Próx mantención:</b> ${formatoLatino(r[17])}<br>
+          <b>Fecha venta:</b> ${formatFecha(r[15])}<br>
+          <b>Fecha instalación:</b> ${formatFecha(r[16])}<br>
           <b>Obs:</b> ${r[18]}<br>
           <button onclick="generarQR('${r[0]}')">Ver QR</button>
         `;
 
-        contenedor.appendChild(div);
+        lista.appendChild(div);
       });
+
     });
 }
 
-// Cargar al entrar
-cargarRegistros();
-</script>
+// ✅ QR
+function generarQR(id) {
+  const url = `${BASE_WEB}/vista.html?id=${id}`;
 
+  const qr = qrcode(0, "L");
+  qr.addData(url);
+  qr.make();
+
+  qr.innerHTML = "";
+  const img = document.createElement("img");
+  img.src = qr.createDataURL(6,4);
+  document.getElementById("qr").appendChild(img);
+}
+
+cargarRegistros();
+
+</script>
 </body>
 </html>
