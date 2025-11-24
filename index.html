@@ -2,8 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Registro Mantención Radios - Explora</title>
+<title>Explora - Registro de Mantenciones</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
 <style>
 body {
   font-family: Inter, Arial, sans-serif;
@@ -28,46 +30,53 @@ button {
   border: none;
   cursor: pointer;
 }
-
 button:hover {
   background: #1d4ed8;
 }
 
 .card {
   background: white;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   margin-top: 10px;
+  border: 1px solid #ddd;
 }
 
 #qr img {
   margin-top: 10px;
+  width: 180px;
 }
 </style>
 </head>
 <body>
 
-<h2>Registro de Mantención de Radios</h2>
+<h2>📡 Registro de Mantención de Radios - Explora</h2>
 
-<input id="modelo" placeholder="Modelo / Marca">
+<input id="modelo" placeholder="Modelo del radio">
 <input id="serie" placeholder="Número de Serie">
 <select id="tipo">
-  <option value="Mantención">Mantención</option>
-  <option value="Instalación">Instalación</option>
-  <option value="Revisión">Revisión</option>
+  <option>Mantención</option>
+  <option>Instalación</option>
+  <option>Revisión</option>
 </select>
-
 <input type="date" id="fecha_venta">
 <input type="date" id="fecha_instalacion">
 <textarea id="observaciones" placeholder="Observaciones"></textarea>
 
 <button onclick="guardarRegistro()">Guardar y Generar QR</button>
 
+<h3>QR generado:</h3>
 <div id="qr"></div>
 
+<h3>📋 Registros Guardados:</h3>
+<div id="lista"></div>
+
 <script>
-// 🔴 PEGA AQUI TU URL DE APPS SCRIPT
-const API_URL = "https://script.google.com/macros/library/d/1wM6LFm-xRpy2YcODSd6NUU8DuABgqfrIFKbclmqXOT0dqraTx7tCkPzV/1";
+// 🔴 PEGA TU URL DE APPS SCRIPT AQUÍ:
+const API_URL = "https://script.google.com/macros/library/d/1wM6LFm-xRpy2YcODSd6NUU8DuABgqfrIFKbclmqXOT0dqraTx7tCkPzV/1L";
+
+// 🔴 PEGA TU URL DE GITHUB AQUÍ:
+const BASE_WEB = "https://snkbcvf.github.io/EXPLORA-SERVICIOS";
 
 function generarID(){
   return "RADIO-" + Date.now();
@@ -79,6 +88,7 @@ function calcularProxima(fecha){
   return d.toISOString().split("T")[0];
 }
 
+// ✅ Guardar registro
 async function guardarRegistro() {
   const id = generarID();
 
@@ -102,17 +112,49 @@ async function guardarRegistro() {
   });
 
   generarQR(id);
+  cargarRegistros();
 }
 
+// ✅ Generar QR
 function generarQR(id) {
-  const vistaURL = "https://TU_LINK_PUBLICO/vista.html?id=" + id;
+  const vistaURL = `${BASE_WEB}/vista.html?id=${id}`;
 
   const qr = qrcode(0, "L");
   qr.addData(vistaURL);
   qr.make();
 
-  document.getElementById("qr").innerHTML = qr.createDataURL(6);
+  document.getElementById("qr").innerHTML = "";
+  const img = document.createElement("img");
+  img.src = qr.createDataURL(6,4);
+  document.getElementById("qr").appendChild(img);
 }
+
+// ✅ Mostrar registros existentes
+async function cargarRegistros() {
+  const res = await fetch(API_URL + "?all=true");
+  const registros = await res.json();
+
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  registros.forEach(r => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <b>Serie:</b> ${r[1]}<br>
+      <b>Modelo:</b> ${r[2]}<br>
+      <b>Tipo:</b> ${r[3]}<br>
+      <b>Próx Mantención:</b> ${r[6]}<br>
+      <button onclick="generarQR('${r[0]}')">Ver QR</button>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+// Cargar registros al iniciar
+cargarRegistros();
 </script>
 
 </body>
