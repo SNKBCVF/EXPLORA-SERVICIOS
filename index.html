@@ -31,6 +31,7 @@ button {
   border: none;
   cursor: pointer;
 }
+
 button:hover {
   background: #1d4ed8;
 }
@@ -43,68 +44,114 @@ button:hover {
   border: 1px solid #ddd;
 }
 
+#editor {
+  display: none;
+  background: #fff;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+}
+
 #qr img {
   margin-top: 10px;
   width: 180px;
 }
 </style>
 </head>
+
 <body>
 
 <h2>📡 Registro de Mantención de Radios - Explora</h2>
 
 <label>Producto / Modelo</label>
-<input id="modelo" placeholder="Ej: Motorola R7">
+<input id="modelo">
 
 <label>Número de Serie</label>
-<input id="serie" placeholder="Ej: MXP123456">
+<input id="serie">
 
-<label>Tipo de servicio</label>
+<label>Tipo</label>
 <select id="tipo">
-  <option value="Mantención">Mantención</option>
-  <option value="Instalación">Instalación</option>
-  <option value="Revisión">Revisión</option>
+  <option>Mantención</option>
+  <option>Instalación</option>
+  <option>Revisión</option>
 </select>
 
-<label>Fecha de venta</label>
+<label>Fecha Venta</label>
 <input type="date" id="fecha_venta">
 
-<label>Fecha de instalación</label>
+<label>Fecha Instalación</label>
 <input type="date" id="fecha_instalacion">
 
 <label>Observaciones</label>
-<textarea id="observaciones" placeholder="Ej: Cambio de batería, revisión general..."></textarea>
+<textarea id="observaciones"></textarea>
 
 <button onclick="guardarRegistro()">Guardar y Generar QR</button>
 
-<h3>📌 QR generado:</h3>
+<h3>QR Generado:</h3>
 <div id="qr"></div>
 
-<h3>📋 Registros Guardados:</h3>
+<h3>📋 Registros:</h3>
 <div id="lista"></div>
+
+<!-- EDITOR -->
+<div id="editor">
+  <h3>✏️ Editar Registro</h3>
+
+  <input type="hidden" id="edit-id">
+
+  <label>Modelo</label>
+  <input id="edit-modelo">
+
+  <label>Serie</label>
+  <input id="edit-serie">
+
+  <label>Tipo</label>
+  <select id="edit-tipo">
+    <option>Mantención</option>
+    <option>Instalación</option>
+    <option>Revisión</option>
+  </select>
+
+  <label>Fecha Venta</label>
+  <input type="date" id="edit-fecha-venta">
+
+  <label>Fecha Instalación</label>
+  <input type="date" id="edit-fecha-instalacion">
+
+  <label>Observaciones</label>
+  <textarea id="edit-observaciones"></textarea>
+
+  <button onclick="guardarEdicion()">Guardar Cambios</button>
+</div>
 
 <script>
 
-// ✅ TU API YA CONECTADA
 const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec";
 
-// ✅ TU WEB GITHUB
 const BASE_WEB = "https://snkbcvf.github.io/EXPLORA-SERVICIOS";
 
+// Generar ID único
 function generarID(){
   return "RADIO-" + Date.now();
 }
 
-// ✅ Calcular próxima mantención
+// Calcular próxima mantención
 function calcularProxima(fecha){
-  if (!fecha) return "";
-
-  let d = new Date(fecha);
+  if(!fecha) return "";
+  const d = new Date(fecha);
   d.setMonth(d.getMonth() + 6);
   return d.toISOString().split("T")[0];
 }
 
-// ✅ Guardar registro en Google Sheets
+// Formato latino
+function formatoLatino(fechaISO) {
+  if(!fechaISO) return "";
+  const p = fechaISO.split("-");
+  return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+// Guardar nuevo registro
 function guardarRegistro() {
 
   const id = generarID();
@@ -117,7 +164,7 @@ function guardarRegistro() {
     fecha_venta: document.getElementById("fecha_venta").value,
     fecha_instalacion: document.getElementById("fecha_instalacion").value,
     prox_mantencion: calcularProxima(
-      document.getElementById("fecha_instalacion").value || 
+      document.getElementById("fecha_instalacion").value ||
       document.getElementById("fecha_venta").value
     ),
     observaciones: document.getElementById("observaciones").value
@@ -126,64 +173,113 @@ function guardarRegistro() {
   fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datos)
   });
 
   generarQR(id);
-
-  // Espera 2 segundos y recarga registros
-  setTimeout(cargarRegistros, 2000);
+  setTimeout(cargarRegistros, 1500);
 }
 
-// ✅ Generar QR
+// Mostrar QR
 function generarQR(id) {
 
-  const vistaURL = `${BASE_WEB}/vista.html?id=${id}`;
+  const url = `${BASE_WEB}/vista.html?id=${id}`;
 
   const qr = qrcode(0, "L");
-  qr.addData(vistaURL);
+  qr.addData(url);
   qr.make();
 
-  const qrDiv = document.getElementById("qr");
-  qrDiv.innerHTML = "";
+  document.getElementById("qr").innerHTML = "";
 
   const img = document.createElement("img");
   img.src = qr.createDataURL(6,4);
 
-  qrDiv.appendChild(img);
+  document.getElementById("qr").appendChild(img);
 }
 
-// ✅ Cargar registros desde Google Sheets
+// Cargar registros
 function cargarRegistros() {
 
   fetch(API_URL + "?all=true")
-    .then(res => res.json())
-    .then(registros => {
-      
-      const lista = document.getElementById("lista");
-      lista.innerHTML = "";
+    .then(r => r.json())
+    .then(data => {
 
-      registros.forEach(r => {
+      const contenedor = document.getElementById("lista");
+      contenedor.innerHTML = "";
+
+      data.forEach(r => {
+
         const div = document.createElement("div");
         div.className = "card";
 
         div.innerHTML = `
-          <b>Serie:</b> ${r[1]}<br>
           <b>Modelo:</b> ${r[2]}<br>
+          <b>Serie:</b> ${r[1]}<br>
           <b>Tipo:</b> ${r[3]}<br>
-          <b>Próx Mantención:</b> ${r[6]}<br>
-          <button onclick="generarQR('${r[0]}')">Ver QR</button>
+          <b>Fecha Venta:</b> ${formatoLatino(r[4])}<br>
+          <b>Fecha Instalación:</b> ${formatoLatino(r[5])}<br>
+          <b>Próx Mantención:</b> ${formatoLatino(r[6])}<br>
+          <button onclick="generarQR('${r[0]}')">QR</button>
+          <button onclick="abrirEditor('${r[0]}')">Editar</button>
         `;
 
-        lista.appendChild(div);
+        contenedor.appendChild(div);
       });
     });
 }
 
-// ✅ Cargar registros al abrir
+// Abrir editor
+function abrirEditor(id) {
+
+  fetch(API_URL + "?id=" + id)
+    .then(r => r.json())
+    .then(d => {
+
+      document.getElementById("editor").style.display = "block";
+
+      document.getElementById("edit-id").value = d[0];
+      document.getElementById("edit-serie").value = d[1];
+      document.getElementById("edit-modelo").value = d[2];
+      document.getElementById("edit-tipo").value = d[3];
+      document.getElementById("edit-fecha-venta").value = d[4];
+      document.getElementById("edit-fecha-instalacion").value = d[5];
+      document.getElementById("edit-observaciones").value = d[7];
+    });
+}
+
+// Guardar edición
+function guardarEdicion() {
+
+  const data = {
+    id: document.getElementById("edit-id").value,
+    serie: document.getElementById("edit-serie").value,
+    modelo: document.getElementById("edit-modelo").value,
+    tipo: document.getElementById("edit-tipo").value,
+    fecha_venta: document.getElementById("edit-fecha-venta").value,
+    fecha_instalacion: document.getElementById("edit-fecha-instalacion").value,
+    prox_mantencion: calcularProxima(
+      document.getElementById("edit-fecha-instalacion").value ||
+      document.getElementById("edit-fecha-venta").value
+    ),
+    observaciones: document.getElementById("edit-observaciones").value
+  };
+
+  fetch(API_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  alert("✅ Registro actualizado");
+
+  setTimeout(() => {
+    document.getElementById("editor").style.display = "none";
+    cargarRegistros();
+  }, 1200);
+}
+
+// Cargar al abrir
 cargarRegistros();
 
 </script>
