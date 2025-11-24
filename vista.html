@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ficha Técnica del Radio</title>
+<title>Ficha Técnica del Radio - Explora</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -43,13 +43,13 @@ h2 {
 <h2>📡 Ficha del Radio</h2>
 
 <div class="card" id="contenido">
-  Cargando información del equipo...
+  Cargando información...
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbylq2qWshRV3kKJW3PfYjLslxL7uhCj-K1Gu2xkDzaZu06c6CEB9RRLrPcpebIrQA/exec";
+// ✅ TU API YA CONFIGURADA
+const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec";
 
-// Obtener ID desde QR
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
@@ -63,7 +63,7 @@ async function cargarFicha() {
   const data = await res.json();
 
   if (data.error) {
-    document.getElementById("contenido").innerHTML = "❌ Radio no encontrado en la base de datos.";
+    document.getElementById("contenido").innerHTML = "❌ Radio no encontrado en la base.";
     return;
   }
 
@@ -80,37 +80,6 @@ async function cargarFicha() {
 }
 
 cargarFicha();
-</script>
-
-</body>
-</html>
-
-<script>
-
-const API_URL = "https://script.google.com/macros/library/d/1wM6LFm-xRpy2YcODSd6NUU8DuABgqfrIFKbclmqXOT0dqraTx7tCkPzV/1";
-
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-
-fetch(API_URL + "?id=" + id)
-  .then(res => res.json())
-  .then(data => {
-    if(data.error){
-      document.getElementById("contenido").innerHTML =
-        "❌ Radio no encontrado en la base.";
-      return;
-    }
-
-    document.getElementById("contenido").innerHTML = `
-      <b>Serie:</b> ${data[1]}<br>
-      <b>Modelo:</b> ${data[2]}<br>
-      <b>Tipo:</b> ${data[3]}<br>
-      <b>Fecha Venta:</b> ${data[4]}<br>
-      <b>Fecha Instalación:</b> ${data[5]}<br>
-      <b>Próx. Mantención:</b> ${data[6]}<br>
-      <b>Observaciones:</b> ${data[7]}
-    `;
-});
 </script>
 
 </body>
