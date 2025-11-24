@@ -2,188 +2,200 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Explora - Registro de Mantenciones</title>
+<title>Explora - Gestión de Radios</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 
 <style>
 body {
-  font-family: Inter, Arial, sans-serif;
-  background: #f0f4f8;
-  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #0c0c0c;
+  color: #d4af37;
+  padding: 15px;
 }
 
-h2, h3 { margin-bottom: 10px; }
+.logo {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.logo img {
+  max-width: 220px;
+}
+
+.card {
+  background: #111;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #d4af37;
+}
+
+label {
+  font-size: 13px;
+}
 
 input, select, textarea, button {
   width: 100%;
-  padding: 8px;
-  margin: 6px 0;
+  padding: 5px;
+  margin: 4px 0;
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 14px;
 }
 
 button {
-  background: #2563eb;
-  color: white;
-  border: none;
+  background: #d4af37;
+  color: black;
+  font-weight: bold;
   cursor: pointer;
 }
 
-button:hover {
-  background: #1d4ed8;
-}
-
-.card {
-  background: white;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 10px;
-  border: 1px solid #ddd;
-}
-
-#editor {
-  display: none;
-  background: #fff;
-  padding: 12px;
-  border-radius: 10px;
-  margin-top: 20px;
-  border: 1px solid #ccc;
-}
-
 #qr img {
+  width: 160px;
   margin-top: 10px;
-  width: 180px;
+}
+
+.registro {
+  margin-bottom: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>📡 Registro de Mantención de Radios - Explora</h2>
+<div class="logo">
+  <img src="LOGO EXPLORA R R recortada.PNG">
+</div>
 
-<label>Producto / Modelo</label>
-<input id="modelo">
+<h2>📡 Sistema de Registro - Explora Servicios</h2>
 
-<label>Número de Serie</label>
-<input id="serie">
+<div class="card">
+  <h3>Identificación del equipo</h3>
 
-<label>Tipo</label>
-<select id="tipo">
-  <option>Mantención</option>
-  <option>Instalación</option>
-  <option>Revisión</option>
-</select>
+  <label>ID del radio (solo si ya existe)</label>
+  <input id="id_radio" placeholder="Ej: RADIO-1732456789000">
+</div>
 
-<label>Fecha Venta</label>
-<input type="date" id="fecha_venta">
+<div class="card">
+  <h3>Datos del servicio</h3>
 
-<label>Fecha Instalación</label>
-<input type="date" id="fecha_instalacion">
+  <input id="empresa" placeholder="Empresa">
+  <input id="solicitante" placeholder="Solicitante">
+  <input id="oc" placeholder="Orden de Compra">
+  <input id="lugar" placeholder="Lugar de operación">
+  <input id="tecnico" placeholder="Técnico responsable">
 
-<label>Observaciones</label>
-<textarea id="observaciones"></textarea>
+  <select id="motivo">
+    <option>Instalación</option>
+    <option>Mantención</option>
+    <option>Retiro</option>
+    <option>Revisión</option>
+  </select>
+</div>
 
-<button onclick="guardarRegistro()">Guardar y Generar QR</button>
+<div class="card">
+  <h3>Datos del vehículo</h3>
 
-<h3>QR Generado:</h3>
-<div id="qr"></div>
+  <input id="patente" placeholder="Patente unidad">
 
-<h3>📋 Registros:</h3>
-<div id="lista"></div>
+  <select id="tipo_vehiculo">
+    <option>Camioneta</option>
+    <option>Camión</option>
+    <option>Bus</option>
+    <option>Maquinaria</option>
+  </select>
 
-<!-- EDITOR -->
-<div id="editor">
-  <h3>✏️ Editar Registro</h3>
+  <input id="marca" placeholder="Marca del vehículo">
+  <input id="modelo_vehiculo" placeholder="Modelo del vehículo">
+  <input id="anio" placeholder="Año vehículo">
+</div>
 
-  <input type="hidden" id="edit-id">
+<div class="card">
+  <h3>Datos del radio</h3>
 
-  <label>Modelo</label>
-  <input id="edit-modelo">
+  <input id="modelo_radio" placeholder="Modelo del radio">
+  <input id="serie" placeholder="Número de serie">
 
-  <label>Serie</label>
-  <input id="edit-serie">
-
-  <label>Tipo</label>
-  <select id="edit-tipo">
+  <select id="tipo">
     <option>Mantención</option>
     <option>Instalación</option>
     <option>Revisión</option>
   </select>
 
-  <label>Fecha Venta</label>
-  <input type="date" id="edit-fecha-venta">
+  <label>Fecha de instalación</label>
+  <input type="date" id="fecha_instalacion">
 
-  <label>Fecha Instalación</label>
-  <input type="date" id="edit-fecha-instalacion">
+  <textarea id="observaciones" placeholder="Observaciones"></textarea>
 
-  <label>Observaciones</label>
-  <textarea id="edit-observaciones"></textarea>
-
-  <button onclick="guardarEdicion()">Guardar Cambios</button>
+  <button onclick="guardarRegistro()">Guardar registro</button>
 </div>
 
+<h3>QR generado:</h3>
+<div id="qr"></div>
+
+<h3>📋 Registros actuales</h3>
+<div id="lista"></div>
+
 <script>
-
 const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec";
-
 const BASE_WEB = "https://snkbcvf.github.io/EXPLORA-SERVICIOS";
 
-// Generar ID único
-function generarID(){
+function generarID() {
   return "RADIO-" + Date.now();
 }
 
-// Calcular próxima mantención
-function calcularProxima(fecha){
-  if(!fecha) return "";
-  const d = new Date(fecha);
-  d.setMonth(d.getMonth() + 6);
-  return d.toISOString().split("T")[0];
-}
-
-// Formato latino
 function formatoLatino(fechaISO) {
-  if(!fechaISO) return "";
+  if (!fechaISO) return "";
   const p = fechaISO.split("-");
   return `${p[2]}/${p[1]}/${p[0]}`;
 }
 
-// Guardar nuevo registro
+// ✅ Guardar / actualizar registro
 function guardarRegistro() {
 
-  const id = generarID();
+  let id = document.getElementById("id_radio").value.trim();
+
+  if (id === "") {
+    id = generarID();
+  }
 
   const datos = {
     id: id,
-    modelo: document.getElementById("modelo").value,
-    serie: document.getElementById("serie").value,
-    tipo: document.getElementById("tipo").value,
-    fecha_venta: document.getElementById("fecha_venta").value,
-    fecha_instalacion: document.getElementById("fecha_instalacion").value,
-    prox_mantencion: calcularProxima(
-      document.getElementById("fecha_instalacion").value ||
-      document.getElementById("fecha_venta").value
-    ),
-    observaciones: document.getElementById("observaciones").value
+    empresa: empresa.value,
+    solicitante: solicitante.value,
+    oc: oc.value,
+    lugar: lugar.value,
+    tecnico: tecnico.value,
+    motivo: motivo.value,
+    patente: patente.value,
+    tipo_vehiculo: tipo_vehiculo.value,
+    marca: marca.value,
+    modelo_vehiculo: modelo_vehiculo.value,
+    anio: anio.value,
+    modelo_radio: modelo_radio.value,
+    serie: serie.value,
+    tipo: tipo.value,
+    fecha_instalacion: fecha_instalacion.value,
+    observaciones: observaciones.value
   };
 
-data.modo = "editar"; // 👈 Le decimos al script que es edición
-
-fetch(API_URL, {
-  method: "POST",
-  mode: "no-cors",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(data)
-});
+  fetch(API_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(datos)
+  });
 
   generarQR(id);
+
+  document.getElementById("id_radio").value = id;
+
   setTimeout(cargarRegistros, 1500);
 }
 
-// Mostrar QR
+// ✅ Generar QR
 function generarQR(id) {
 
   const url = `${BASE_WEB}/vista.html?id=${id}`;
@@ -195,95 +207,58 @@ function generarQR(id) {
   document.getElementById("qr").innerHTML = "";
 
   const img = document.createElement("img");
-  img.src = qr.createDataURL(6,4);
-
+  img.src = qr.createDataURL(6, 4);
   document.getElementById("qr").appendChild(img);
 }
 
-// Cargar registros
+// ✅ Cargar registros actuales
 function cargarRegistros() {
 
   fetch(API_URL + "?all=true")
     .then(r => r.json())
     .then(data => {
 
-      const contenedor = document.getElementById("lista");
-      contenedor.innerHTML = "";
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
 
       data.forEach(r => {
 
         const div = document.createElement("div");
-        div.className = "card";
+        div.className = "card registro";
 
         div.innerHTML = `
-          <b>Modelo:</b> ${r[2]}<br>
-          <b>Serie:</b> ${r[1]}<br>
-          <b>Tipo:</b> ${r[3]}<br>
-          <b>Fecha Venta:</b> ${formatoLatino(r[4])}<br>
-          <b>Fecha Instalación:</b> ${formatoLatino(r[5])}<br>
-          <b>Próx Mantención:</b> ${formatoLatino(r[6])}<br>
-          <button onclick="generarQR('${r[0]}')">QR</button>
-          <button onclick="abrirEditor('${r[0]}')">Editar</button>
+          <b>ID:</b> ${r[0]}<br>
+          <b>Empresa:</b> ${r[1]}<br>
+          <b>Solicitante:</b> ${r[2]}<br>
+          <b>OC:</b> ${r[3]}<br>
+          <b>Lugar:</b> ${r[4]}<br>
+          <b>Técnico:</b> ${r[5]}<br>
+          <b>Motivo:</b> ${r[6]}<br>
+          <b>Patente:</b> ${r[7]}<br>
+          <b>Tipo Vehículo:</b> ${r[8]}<br>
+          <b>Marca / Modelo / Año:</b> ${r[9]} ${r[10]} ${r[11]}<br>
+          <b>Modelo Radio:</b> ${r[12]}<br>
+          <b>Serie:</b> ${r[13]}<br>
+          <b>Tipo Servicio:</b> ${r[14]}<br>
+          <b>Fecha instalación:</b> ${formatoLatino(r[15])}<br>
+          <b>Observaciones:</b> ${r[16]}<br>
+          <button onclick="ponerID('${r[0]}')">Usar este ID</button>
+          <button onclick="generarQR('${r[0]}')">Mostrar QR</button>
         `;
 
-        contenedor.appendChild(div);
+        lista.appendChild(div);
       });
+
     });
 }
 
-// Abrir editor
-function abrirEditor(id) {
-
-  fetch(API_URL + "?id=" + id)
-    .then(r => r.json())
-    .then(d => {
-
-      document.getElementById("editor").style.display = "block";
-
-      document.getElementById("edit-id").value = d[0];
-      document.getElementById("edit-serie").value = d[1];
-      document.getElementById("edit-modelo").value = d[2];
-      document.getElementById("edit-tipo").value = d[3];
-      document.getElementById("edit-fecha-venta").value = d[4];
-      document.getElementById("edit-fecha-instalacion").value = d[5];
-      document.getElementById("edit-observaciones").value = d[7];
-    });
+// ✅ Copiar un ID existente al formulario
+function ponerID(id) {
+  document.getElementById("id_radio").value = id;
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// Guardar edición
-function guardarEdicion() {
-
-  const data = {
-    id: document.getElementById("edit-id").value,
-    serie: document.getElementById("edit-serie").value,
-    modelo: document.getElementById("edit-modelo").value,
-    tipo: document.getElementById("edit-tipo").value,
-    fecha_venta: document.getElementById("edit-fecha-venta").value,
-    fecha_instalacion: document.getElementById("edit-fecha-instalacion").value,
-    prox_mantencion: calcularProxima(
-      document.getElementById("edit-fecha-instalacion").value ||
-      document.getElementById("edit-fecha-venta").value
-    ),
-    observaciones: document.getElementById("edit-observaciones").value
-  };
-
-  fetch(API_URL, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-
-  alert("✅ Registro actualizado");
-
-  setTimeout(() => {
-    document.getElementById("editor").style.display = "none";
-    cargarRegistros();
-  }, 1200);
-}
-
-// Cargar al abrir
 cargarRegistros();
-
 </script>
 
 </body>
