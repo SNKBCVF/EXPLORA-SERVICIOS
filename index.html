@@ -63,10 +63,10 @@ button:hover {
 
 <body>
 
-<h2>📡 Registro de Mantención de Radios</h2>
+<h2>📡 Registro de Mantención de Radios - Explora Servicios</h2>
 
 <div class="card">
-  <label>ID del radio (solo si ya existe)</label>
+  <label>ID del radio (solo si ya existe, para actualizar)</label>
   <input id="id_radio" placeholder="Ej: RADIO-1764018271408">
 </div>
 
@@ -74,8 +74,9 @@ button:hover {
   <h3>Datos del servicio</h3>
   <input id="empresa" placeholder="Empresa">
   <input id="solicitante" placeholder="Solicitante">
+  <input id="oc" placeholder="OC / Orden de compra">
   <input id="lugar" placeholder="Lugar operación">
-  <input id="tecnico" placeholder="Técnico responsable">
+  <input id="tecnico" placeholder="Nombre técnico">
 
   <label>Motivo intervención</label>
   <select id="motivo">
@@ -98,9 +99,9 @@ button:hover {
     <option>Maquinaria</option>
   </select>
 
-  <input id="marca" placeholder="Marca">
+  <input id="marca" placeholder="Marca vehículo">
   <input id="modelo_vehiculo" placeholder="Modelo vehículo">
-  <input id="anio" placeholder="Año">
+  <input id="anio" placeholder="Año vehículo">
 </div>
 
 <div class="card">
@@ -132,11 +133,14 @@ button:hover {
 <h3>📷 QR generado</h3>
 <div id="qr"></div>
 
-<h3>📋 Registros actuales</h3>
+<h3>📋 Registros actuales (REGISTRO_ACTUAL)</h3>
 <div id="lista"></div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec";
+// 👇 Pega aquí la URL de tu Apps Script
+const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec"; 
+
+// URL base de tu GitHub Pages
 const BASE_WEB = "https://snkbcvf.github.io/EXPLORA-SERVICIOS";
 
 function generarID() {
@@ -146,7 +150,19 @@ function generarID() {
 function formatFecha(f) {
   if(!f) return "";
   const d = new Date(f);
+  if (isNaN(d)) return f; // por si viene ya formateada
   return d.toLocaleDateString("es-CL");
+}
+
+function calcularProxMant(fechaBase) {
+  if (!fechaBase) return "";
+  const d = new Date(fechaBase);
+  if (isNaN(d)) return "";
+  d.setMonth(d.getMonth() + 6);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`; // formato YYYY-MM-DD
 }
 
 // ✅ Guardar registro
@@ -155,10 +171,14 @@ function guardarRegistro() {
   let id = document.getElementById("id_radio").value.trim();
   if (!id) id = generarID();
 
+  const fechaBase = fecha_instalacion.value || fecha_venta.value;
+  const proxMant = calcularProxMant(fechaBase);
+
   const datos = {
     id: id,
     empresa: empresa.value,
     solicitante: solicitante.value,
+    oc: oc.value,
     lugar: lugar.value,
     tecnico: tecnico.value,
     motivo: motivo.value,
@@ -172,26 +192,26 @@ function guardarRegistro() {
     tipo: tipo_servicio.value,
     fecha_venta: fecha_venta.value,
     fecha_instalacion: fecha_instalacion.value,
-    prox_mantencion: "",
+    prox_mantencion: proxMant,
     observaciones: observaciones.value
   };
 
+  // Enviamos al Apps Script (fire & forget)
   fetch(API_URL, {
     method: "POST",
+    mode: "no-cors",              // evitamos el error "Failed to fetch"
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datos)
-  })
-  .then(() => {
-    generarQR(id);
-    document.getElementById("id_radio").value = id;
-    setTimeout(cargarRegistros, 1500);
-  })
-  .catch(err => {
-    alert("Error enviando datos: " + err);
   });
+
+  generarQR(id);
+  document.getElementById("id_radio").value = id;
+
+  // Damos un tiempo a que Google escriba y luego recargamos
+  setTimeout(cargarRegistros, 1500);
 }
 
-// ✅ Cargar registros
+// ✅ Cargar registros desde REGISTRO_ACTUAL
 function cargarRegistros() {
 
   fetch(API_URL + "?all=true")
@@ -207,7 +227,6 @@ function cargarRegistros() {
       }
 
       data.forEach(r => {
-
         const div = document.createElement("div");
         div.className = "card registro";
 
@@ -215,6 +234,7 @@ function cargarRegistros() {
           <b>ID:</b> ${r[0]}<br>
           <b>Empresa:</b> ${r[1]}<br>
           <b>Solicitante:</b> ${r[2]}<br>
+          <b>OC:</b> ${r[3]}<br>
           <b>Lugar:</b> ${r[4]}<br>
           <b>Técnico:</b> ${r[5]}<br>
           <b>Motivo:</b> ${r[6]}<br>
@@ -224,6 +244,7 @@ function cargarRegistros() {
           <b>Tipo servicio:</b> ${r[14]}<br>
           <b>Fecha venta:</b> ${formatFecha(r[15])}<br>
           <b>Fecha instalación:</b> ${formatFecha(r[16])}<br>
+          <b>Próx mantención:</b> ${formatFecha(r[17])}<br>
           <b>Observaciones:</b> ${r[18]}<br>
           <button onclick="generarQR('${r[0]}')">Ver QR</button>
         `;
