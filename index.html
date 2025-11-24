@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Registro Mantención Radios - Explora</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+body {
+  font-family: Inter, Arial, sans-serif;
+  background: #f0f4f8;
+  padding: 20px;
+}
+
+h2 { margin-bottom: 10px; }
+
+input, select, textarea, button {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+.card {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+#qr img {
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+
+<h2>Registro de Mantención de Radios</h2>
+
+<input id="modelo" placeholder="Modelo / Marca">
+<input id="serie" placeholder="Número de Serie">
+<select id="tipo">
+  <option value="Mantención">Mantención</option>
+  <option value="Instalación">Instalación</option>
+  <option value="Revisión">Revisión</option>
+</select>
+
+<input type="date" id="fecha_venta">
+<input type="date" id="fecha_instalacion">
+<textarea id="observaciones" placeholder="Observaciones"></textarea>
+
+<button onclick="guardarRegistro()">Guardar y Generar QR</button>
+
+<div id="qr"></div>
+
+<script>
+// 🔴 PEGA AQUI TU URL DE APPS SCRIPT
+const API_URL = "https://script.google.com/macros/library/d/1wM6LFm-xRpy2YcODSd6NUU8DuABgqfrIFKbclmqXOT0dqraTx7tCkPzV/1";
+
+function generarID(){
+  return "RADIO-" + Date.now();
+}
+
+function calcularProxima(fecha){
+  let d = new Date(fecha);
+  d.setMonth(d.getMonth() + 6);
+  return d.toISOString().split("T")[0];
+}
+
+async function guardarRegistro() {
+  const id = generarID();
+
+  const datos = {
+    id: id,
+    modelo: document.getElementById("modelo").value,
+    serie: document.getElementById("serie").value,
+    tipo: document.getElementById("tipo").value,
+    fecha_venta: document.getElementById("fecha_venta").value,
+    fecha_instalacion: document.getElementById("fecha_instalacion").value,
+    prox_mantencion: calcularProxima(
+      document.getElementById("fecha_instalacion").value || 
+      document.getElementById("fecha_venta").value
+    ),
+    observaciones: document.getElementById("observaciones").value
+  };
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(datos)
+  });
+
+  generarQR(id);
+}
+
+function generarQR(id) {
+  const vistaURL = "https://TU_LINK_PUBLICO/vista.html?id=" + id;
+
+  const qr = qrcode(0, "L");
+  qr.addData(vistaURL);
+  qr.make();
+
+  document.getElementById("qr").innerHTML = qr.createDataURL(6);
+}
+</script>
+
+</body>
+</html>

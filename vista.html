@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ficha del Radio</title>
+<style>
+body {
+  font-family: Inter, Arial, sans-serif;
+  background: #f0f4f8;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<h2>Ficha del Radio</h2>
+<div id="contenido" class="card">Cargando datos...</div>
+
+<script>
+
+const API_URL = "https://script.google.com/macros/library/d/1wM6LFm-xRpy2YcODSd6NUU8DuABgqfrIFKbclmqXOT0dqraTx7tCkPzV/1";
+
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+fetch(API_URL + "?id=" + id)
+  .then(res => res.json())
+  .then(data => {
+    if(data.error){
+      document.getElementById("contenido").innerHTML =
+        "❌ Radio no encontrado en la base.";
+      return;
+    }
+
+    document.getElementById("contenido").innerHTML = `
+      <b>Serie:</b> ${data[1]}<br>
+      <b>Modelo:</b> ${data[2]}<br>
+      <b>Tipo:</b> ${data[3]}<br>
+      <b>Fecha Venta:</b> ${data[4]}<br>
+      <b>Fecha Instalación:</b> ${data[5]}<br>
+      <b>Próx. Mantención:</b> ${data[6]}<br>
+      <b>Observaciones:</b> ${data[7]}
+    `;
+});
+</script>
+
+</body>
+</html>
