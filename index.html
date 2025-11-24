@@ -8,28 +8,76 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 
 <style>
-body { font-family: Arial, sans-serif; background: #0c0c0c; color: #d4af37; padding: 15px; }
-.card { background: #111; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #d4af37; }
-input, select, textarea, button { width: 100%; padding: 6px; margin-top: 4px; border-radius: 6px; border: none; }
-button { background: #d4af37; color: black; font-weight: bold; }
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f7fa;
+  padding: 15px;
+  color: #222;
+}
+
+h2, h3 {
+  margin-bottom: 8px;
+}
+
+.card {
+  background: white;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+input, select, textarea, button {
+  width: 100%;
+  padding: 6px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+.registro {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#qr img {
+  margin-top: 10px;
+  width: 160px;
+  max-width: 100%;
+}
 </style>
 </head>
 
 <body>
 
-<h2>📡 Registro de Radios - Explora</h2>
+<h2>📡 Registro de Mantención de Radios</h2>
 
 <div class="card">
-  <label>ID (dejar vacío si es radio nuevo)</label>
-  <input id="id_radio">
+  <label>ID del radio (solo si ya existe)</label>
+  <input id="id_radio" placeholder="Ej: RADIO-1764018271408">
 </div>
 
 <div class="card">
-  <h3>Datos Servicio</h3>
+  <h3>Datos del servicio</h3>
   <input id="empresa" placeholder="Empresa">
   <input id="solicitante" placeholder="Solicitante">
   <input id="lugar" placeholder="Lugar operación">
-  <input id="tecnico" placeholder="Técnico">
+  <input id="tecnico" placeholder="Técnico responsable">
+
+  <label>Motivo intervención</label>
   <select id="motivo">
     <option>Instalación</option>
     <option>Mantención</option>
@@ -39,23 +87,28 @@ button { background: #d4af37; color: black; font-weight: bold; }
 </div>
 
 <div class="card">
-  <h3>Datos Vehículo</h3>
-  <input id="patente" placeholder="Patente">
+  <h3>Datos del vehículo</h3>
+  <input id="patente" placeholder="Patente unidad">
+
+  <label>Tipo vehículo</label>
   <select id="tipo_vehiculo">
     <option>Camioneta</option>
     <option>Camión</option>
     <option>Bus</option>
     <option>Maquinaria</option>
   </select>
+
   <input id="marca" placeholder="Marca">
   <input id="modelo_vehiculo" placeholder="Modelo vehículo">
   <input id="anio" placeholder="Año">
 </div>
 
 <div class="card">
-  <h3>Datos Radio</h3>
+  <h3>Datos del radio</h3>
   <input id="modelo_radio" placeholder="Modelo radio">
   <input id="serie" placeholder="Número de serie">
+
+  <label>Tipo servicio</label>
   <select id="tipo_servicio">
     <option>Mantención</option>
     <option>Instalación</option>
@@ -70,19 +123,19 @@ button { background: #d4af37; color: black; font-weight: bold; }
   <label>Fecha instalación</label>
   <input type="date" id="fecha_instalacion">
 
-  <textarea id="observaciones" placeholder="Observaciones"></textarea>
+  <label>Observaciones</label>
+  <textarea id="observaciones"></textarea>
 
   <button onclick="guardarRegistro()">Guardar y generar QR</button>
 </div>
 
-<h3>📋 Resumen de registros</h3>
-<div id="lista"></div>
-
-<h3>QR generado</h3>
+<h3>📷 QR generado</h3>
 <div id="qr"></div>
 
-<script>
+<h3>📋 Registros actuales</h3>
+<div id="lista"></div>
 
+<script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec";
 const BASE_WEB = "https://snkbcvf.github.io/EXPLORA-SERVICIOS";
 
@@ -90,17 +143,17 @@ function generarID() {
   return "RADIO-" + Date.now();
 }
 
-function formatFecha(f){
+function formatFecha(f) {
   if(!f) return "";
   const d = new Date(f);
   return d.toLocaleDateString("es-CL");
 }
 
-// ✅ GUARDAR REGISTRO
+// ✅ Guardar registro
 function guardarRegistro() {
 
-  let id = document.getElementById("id_radio").value;
-  if(!id) id = generarID();
+  let id = document.getElementById("id_radio").value.trim();
+  if (!id) id = generarID();
 
   const datos = {
     id: id,
@@ -127,26 +180,36 @@ function guardarRegistro() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datos)
+  })
+  .then(() => {
+    generarQR(id);
+    document.getElementById("id_radio").value = id;
+    setTimeout(cargarRegistros, 1500);
+  })
+  .catch(err => {
+    alert("Error enviando datos: " + err);
   });
-
-  generarQR(id);
-  document.getElementById("id_radio").value = id;
-
-  setTimeout(cargarRegistros, 1200);
 }
 
-// ✅ CARGAR PANEL
+// ✅ Cargar registros
 function cargarRegistros() {
+
   fetch(API_URL + "?all=true")
     .then(r => r.json())
     .then(data => {
 
+      const lista = document.getElementById("lista");
       lista.innerHTML = "";
+
+      if (!data || data.length === 0) {
+        lista.innerHTML = "<i>No hay registros aún</i>";
+        return;
+      }
 
       data.forEach(r => {
 
         const div = document.createElement("div");
-        div.className = "card";
+        div.className = "card registro";
 
         div.innerHTML = `
           <b>ID:</b> ${r[0]}<br>
@@ -161,17 +224,20 @@ function cargarRegistros() {
           <b>Tipo servicio:</b> ${r[14]}<br>
           <b>Fecha venta:</b> ${formatFecha(r[15])}<br>
           <b>Fecha instalación:</b> ${formatFecha(r[16])}<br>
-          <b>Obs:</b> ${r[18]}<br>
+          <b>Observaciones:</b> ${r[18]}<br>
           <button onclick="generarQR('${r[0]}')">Ver QR</button>
         `;
 
         lista.appendChild(div);
       });
-
+    })
+    .catch(err => {
+      console.error("Error cargando registros:", err);
+      document.getElementById("lista").innerHTML = "⚠ No se pudieron cargar los registros";
     });
 }
 
-// ✅ QR
+// ✅ Generar QR
 function generarQR(id) {
   const url = `${BASE_WEB}/vista.html?id=${id}`;
 
@@ -179,14 +245,16 @@ function generarQR(id) {
   qr.addData(url);
   qr.make();
 
-  qr.innerHTML = "";
+  document.getElementById("qr").innerHTML = "";
+
   const img = document.createElement("img");
   img.src = qr.createDataURL(6,4);
   document.getElementById("qr").appendChild(img);
 }
 
+// Cargar registros al abrir
 cargarRegistros();
-
 </script>
+
 </body>
 </html>
