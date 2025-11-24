@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ficha del Radio</title>
+<title>Ficha Técnica del Radio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body {
   font-family: Inter, Arial, sans-serif;
@@ -14,13 +16,74 @@ body {
   background: white;
   padding: 15px;
   border-radius: 10px;
+  border: 1px solid #ddd;
+  max-width: 500px;
+  margin: auto;
+}
+
+h2 {
+  text-align: center;
+}
+
+.item {
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.label {
+  font-weight: bold;
+  color: #334155;
 }
 </style>
 </head>
+
 <body>
 
-<h2>Ficha del Radio</h2>
-<div id="contenido" class="card">Cargando datos...</div>
+<h2>📡 Ficha del Radio</h2>
+
+<div class="card" id="contenido">
+  Cargando información del equipo...
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/library/d/1wM6LFm-xRpy2YcODSd6NUU8DuABgqfrIFKbclmqXOT0dqraTx7tCkPzV/1L";
+
+// Obtener ID desde QR
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+async function cargarFicha() {
+  if (!id) {
+    document.getElementById("contenido").innerHTML = "⚠️ QR sin ID válido.";
+    return;
+  }
+
+  const res = await fetch(API_URL + "?id=" + id);
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById("contenido").innerHTML = "❌ Radio no encontrado en la base de datos.";
+    return;
+  }
+
+  document.getElementById("contenido").innerHTML = `
+    <div class="item"><span class="label">ID:</span> ${data[0]}</div>
+    <div class="item"><span class="label">Serie:</span> ${data[1]}</div>
+    <div class="item"><span class="label">Modelo:</span> ${data[2]}</div>
+    <div class="item"><span class="label">Tipo:</span> ${data[3]}</div>
+    <div class="item"><span class="label">Fecha Venta:</span> ${data[4]}</div>
+    <div class="item"><span class="label">Fecha Instalación:</span> ${data[5]}</div>
+    <div class="item"><span class="label">Próxima Mantención:</span> ${data[6]}</div>
+    <div class="item"><span class="label">Observaciones:</span> ${data[7]}</div>
+  `;
+}
+
+cargarFicha();
+</script>
+
+</body>
+</html>
 
 <script>
 
