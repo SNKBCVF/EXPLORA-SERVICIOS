@@ -2,85 +2,113 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ficha Técnica del Radio - Explora</title>
+<title>Explora - Vista de Radio</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-  font-family: Inter, Arial, sans-serif;
-  background: #f0f4f8;
-  padding: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f2f4f6;
+  padding: 15px;
+  color: #222;
 }
 
 .card {
   background: white;
-  padding: 15px;
-  border-radius: 10px;
+  padding: 12px;
+  border-radius: 8px;
   border: 1px solid #ddd;
-  max-width: 500px;
-  margin: auto;
+  margin-top: 10px;
 }
 
 h2 {
-  text-align: center;
-}
-
-.item {
   margin-bottom: 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #eee;
 }
 
-.label {
-  font-weight: bold;
-  color: #334155;
+b {
+  color: #2563eb;
 }
 </style>
 </head>
 
 <body>
 
-<h2>📡 Ficha del Radio</h2>
-
-<div class="card" id="contenido">
-  Cargando información...
-</div>
+<h2>📡 Información del Radio</h2>
+<div id="contenido" class="card">Cargando información...</div>
 
 <script>
-// ✅ TU API YA CONFIGURADA
-const API_URL = "https://script.google.com/macros/s/AKfycbzbr0UxNpYLF9hgKtdnrOBlq5OGK78y6-BsnDVPuYy1n1EpCcQchT9V8q3J8x7aw0V9/exec";
+// 👇 PEGA LA MISMA URL QUE USAS EN EL INDEX
+const API_URL = "PON_AQUI_TU_URL_DE_APPS_SCRIPT";
 
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-
-async function cargarFicha() {
-  if (!id) {
-    document.getElementById("contenido").innerHTML = "⚠️ QR sin ID válido.";
-    return;
-  }
-
-  const res = await fetch(API_URL + "?id=" + id);
-  const data = await res.json();
-
-  if (data.error) {
-    document.getElementById("contenido").innerHTML = "❌ Radio no encontrado en la base.";
-    return;
-  }
-
-  document.getElementById("contenido").innerHTML = `
-    <div class="item"><span class="label">ID:</span> ${data[0]}</div>
-    <div class="item"><span class="label">Serie:</span> ${data[1]}</div>
-    <div class="item"><span class="label">Modelo:</span> ${data[2]}</div>
-    <div class="item"><span class="label">Tipo:</span> ${data[3]}</div>
-    <div class="item"><span class="label">Fecha Venta:</span> ${data[4]}</div>
-    <div class="item"><span class="label">Fecha Instalación:</span> ${data[5]}</div>
-    <div class="item"><span class="label">Próxima Mantención:</span> ${data[6]}</div>
-    <div class="item"><span class="label">Observaciones:</span> ${data[7]}</div>
-  `;
+function obtenerParametro(nombre) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(nombre);
 }
 
-cargarFicha();
-</script>
+function formatFecha(f) {
+  if (!f) return "";
+  const d = new Date(f);
+  if (isNaN(d)) return f;
+  return d.toLocaleDateString("es-CL") + " " + d.toLocaleTimeString("es-CL");
+}
 
+function cargarDatos() {
+  const id = obtenerParametro("id");
+
+  if (!id) {
+    document.getElementById("contenido").innerHTML =
+      "⚠ No se recibió ningún ID en la URL.";
+    return;
+  }
+
+  fetch(`${API_URL}?id=${id}`)
+    .then(resp => resp.json())
+    .then(data => {
+
+      if (data.error) {
+        document.getElementById("contenido").innerHTML =
+          "❌ No se encontró el registro para este ID.";
+        return;
+      }
+
+      document.getElementById("contenido").innerHTML = `
+        <h3>${data[0]}</h3>
+
+        <p><b>Empresa:</b> ${data[1]}</p>
+        <p><b>Solicitante:</b> ${data[2]}</p>
+        <p><b>OC:</b> ${data[3]}</p>
+        <p><b>Lugar operación:</b> ${data[4]}</p>
+        <p><b>Técnico:</b> ${data[5]}</p>
+        <p><b>Motivo intervención:</b> ${data[6]}</p>
+        <p><b>Patente:</b> ${data[7]}</p>
+        <p><b>Vehículo:</b> ${data[8]} / ${data[9]} / ${data[10]} / ${data[11]}</p>
+
+        <hr>
+
+        <p><b>Modelo radio:</b> ${data[12]}</p>
+        <p><b>Serie radio:</b> ${data[13]}</p>
+        <p><b>Tipo servicio:</b> ${data[14]}</p>
+
+        <hr>
+
+        <p><b>Fecha venta:</b> ${formatFecha(data[15])}</p>
+        <p><b>Fecha instalación:</b> ${formatFecha(data[16])}</p>
+        <p><b>Próx mantención:</b> ${formatFecha(data[17])}</p>
+
+        <hr>
+
+        <p><b>Observaciones:</b> ${data[18]}</p>
+        <p><b>Fecha registro:</b> ${formatFecha(data[19])}</p>
+      `;
+    })
+    .catch(err => {
+      document.getElementById("contenido").innerHTML =
+        "⚠ Error al conectar con la base de datos.";
+      console.error(err);
+    });
+}
+
+cargarDatos();
+</script>
 </body>
 </html>
