@@ -265,7 +265,12 @@ function cargarRegistros() {
 
 let ultimoQR = "";
 
+let ultimoQRBase64 = "";
+let ultimoID = "";
+
 function generarQR(id) {
+  ultimoID = id;
+
   const url = `${BASE_WEB}/vista.html?id=${id}`;
 
   const qr = qrcode(0, "L");
@@ -274,31 +279,57 @@ function generarQR(id) {
 
   document.getElementById("qr").innerHTML = "";
 
-  const img = document.createElement("img");
-  ultimoQR = qr.createDataURL(8,4);  // Más calidad
+  // Convertimos el QR a imagen base64 (PNG)
+  const tempImg = new Image();
+  tempImg.src = qr.createDataURL(8, 4);
 
-  img.src = ultimoQR;
-  img.id = "imgQR";
+  tempImg.onload = function() {
+    // Creamos un canvas para convertirlo a JPG
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-  document.getElementById("qr").appendChild(img);
+    canvas.width = tempImg.width;
+    canvas.height = tempImg.height;
 
-  // Mostrar botón de descarga
-  document.getElementById("btnDescargarQR").style.display = "block";
+    // Fondo blanco para JPG
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Dibujar QR encima
+    ctx.drawImage(tempImg, 0, 0);
+
+    // Convertimos a JPG real
+    ultimoQRBase64 = canvas.toDataURL("image/jpeg", 0.95);
+
+    // Mostrar imagen en pantalla
+    const imgFinal = document.createElement("img");
+    imgFinal.src = ultimoQRBase64;
+    imgFinal.id = "imgQR";
+
+    document.getElementById("qr").appendChild(imgFinal);
+
+    // Mostrar botón
+    document.getElementById("btnDescargarQR").style.display = "block";
+  };
 }
 
-  function descargarQR() {
-  if (!ultimoQR) {
+function descargarQR() {
+  if (!ultimoQRBase64) {
     alert("Primero genera un QR");
     return;
   }
 
   const link = document.createElement("a");
-  link.href = ultimoQR;
-  link.download = "QR_RADIO.jpg";
+
+  // Nombre automático con ID
+  link.download = `QR_${ultimoID}.jpg`;
+  link.href = ultimoQRBase64;
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
+
 
 
 // Cargar registros al abrir
