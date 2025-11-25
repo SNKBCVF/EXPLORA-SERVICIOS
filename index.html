@@ -286,6 +286,20 @@ function generarQR(id) {
   document.getElementById("btnDescargarQR").style.display = "block";
 }
 
+  function descargarQR() {
+  if (!ultimoQR) {
+    alert("Primero genera un QR");
+    return;
+  }
+
+  const link = document.createElement("a");
+  link.href = ultimoQR;
+  link.download = "QR_RADIO.jpg";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 
 // Cargar registros al abrir
 cargarRegistros();
