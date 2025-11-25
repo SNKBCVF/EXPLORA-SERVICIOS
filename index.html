@@ -150,6 +150,7 @@ button:hover {
   📥 Descargar QR en JPG
 </button>
 
+<!-- FILTROS -->
 <h3>🔎 Filtros</h3>
 
 <div class="card">
@@ -182,7 +183,6 @@ button:hover {
 <h3>📋 Registros actuales</h3>
 <div id="lista"></div>
 
-
 <script>
 // 🔴 PEGA AQUÍ TU URL DE APPS SCRIPT
 const API_URL = "https://script.google.com/macros/s/AKfycbylwgXIa1SWeW2wDVZ_Vj1L3dHXMlUAAHGQg15LkobehRma6xa9z21WJSWcTMLlScT9/exec";
@@ -192,6 +192,7 @@ const BASE_WEB = "https://snkbcvf.github.io/EXPLORA-SERVICIOS";
 
 let ultimoQRBase64 = "";
 let ultimoID = "";
+window.registrosGlobales = [];
 
 function generarID() {
   return "RADIO-" + Date.now();
@@ -215,7 +216,7 @@ function calcularProxMant(fechaBase) {
   return `${y}-${m}-${day}`;
 }
 
-// ✅ Guardar registro
+// ✅ Guardar
 function guardarRegistro() {
 
   let id = document.getElementById("id_radio").value.trim();
@@ -223,8 +224,7 @@ function guardarRegistro() {
 
   ultimoID = id;
 
-  const fechaBase = fecha_instalacion.value || fecha_venta.value;
-  const proxMant = calcularProxMant(fechaBase);
+  const proxMant = calcularProxMant(fecha_instalacion.value || fecha_venta.value);
 
   const datos = {
     id: id,
@@ -251,7 +251,7 @@ function guardarRegistro() {
   fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify(datos)
   });
 
@@ -261,13 +261,12 @@ function guardarRegistro() {
   setTimeout(cargarRegistros, 1500);
 }
 
-// ✅ Generar QR y convertirlo a JPG real
+// ✅ Generar QR JPG
 function generarQR(id) {
 
   ultimoID = id;
 
   const url = `${BASE_WEB}/vista.html?id=${id}`;
-
   const qr = qrcode(0, "L");
   qr.addData(url);
   qr.make();
@@ -276,9 +275,10 @@ function generarQR(id) {
   qrDiv.innerHTML = "";
 
   const tempImg = new Image();
-  tempImg.src = qr.createDataURL(8, 4);
+  tempImg.src = qr.createDataURL(8,4);
 
   tempImg.onload = function() {
+
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -286,24 +286,22 @@ function generarQR(id) {
     canvas.height = tempImg.height;
 
     ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(tempImg,0,0);
 
-    ctx.drawImage(tempImg, 0, 0);
+    ultimoQRBase64 = canvas.toDataURL("image/jpeg",0.95);
 
-    ultimoQRBase64 = canvas.toDataURL("image/jpeg", 0.95);
-
-    const imgFinal = document.createElement("img");
-    imgFinal.src = ultimoQRBase64;
-
-    qrDiv.appendChild(imgFinal);
+    const img = document.createElement("img");
+    img.src = ultimoQRBase64;
+    qrDiv.appendChild(img);
 
     document.getElementById("btnDescargarQR").style.display = "block";
   };
 }
 
-// ✅ Descargar QR en JPG
+// ✅ Descargar QR
 function descargarQR() {
-  if (!ultimoQRBase64) {
+  if(!ultimoQRBase64) {
     alert("Primero genera un QR");
     return;
   }
@@ -311,71 +309,99 @@ function descargarQR() {
   const link = document.createElement("a");
   link.download = `QR_${ultimoID}.jpg`;
   link.href = ultimoQRBase64;
-  document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
 }
 
 // ✅ Ver info QR
 function verInfoQR(id) {
-  const url = `${BASE_WEB}/vista.html?id=${id}`;
-  window.open(url, "_blank");
+  window.open(`${BASE_WEB}/vista.html?id=${id}`, "_blank");
 }
 
 // ✅ Cargar registros
 function cargarRegistros() {
-
   fetch(API_URL + "?all=true")
     .then(r => r.json())
     .then(data => {
-
-      const lista = document.getElementById("lista");
-      lista.innerHTML = "";
-
-      if (!data || data.length === 0) {
-        lista.innerHTML = "<i>No hay registros aún</i>";
-        return;
-      }
-
-      data.forEach(r => {
-
-        const div = document.createElement("div");
-        div.className = "card registro";
-
-        div.innerHTML = `
-          <b>ID:</b> ${r[0]}<br>
-          <b>Empresa:</b> ${r[1]}<br>
-          <b>Solicitante:</b> ${r[2]}<br>
-          <b>OC:</b> ${r[3]}<br>
-          <b>Lugar:</b> ${r[4]}<br>
-          <b>Técnico:</b> ${r[5]}<br>
-          <b>Motivo:</b> ${r[6]}<br>
-          <b>Patente:</b> ${r[7]}<br>
-          <b>Vehículo:</b> ${r[8]} / ${r[9]} / ${r[10]} / ${r[11]}<br>
-          <b>Radio:</b> ${r[12]} (${r[13]})<br>
-          <b>Tipo servicio:</b> ${r[14]}<br>
-          <b>Fecha venta:</b> ${formatFecha(r[15])}<br>
-          <b>Fecha instalación:</b> ${formatFecha(r[16])}<br>
-          <b>Próx mantención:</b> ${formatFecha(r[17])}<br>
-          <b>Obs:</b> ${r[18]}<br>
-
-          <div class="botones">
-            <button onclick="generarQR('${r[0]}')">🔲 Ver QR</button>
-            <button onclick="verInfoQR('${r[0]}')">📄 Ver info QR</button>
-          </div>
-        `;
-
-        lista.appendChild(div);
-      });
-
-    })
-    .catch(err => {
-      console.error("Error cargando registros:", err);
-      document.getElementById("lista").innerHTML = "⚠ No se pudieron cargar los registros";
+      window.registrosGlobales = data;
+      mostrarRegistros(data);
     });
 }
 
-// Cargar registros al abrir
+// ✅ Mostrar registros
+function mostrarRegistros(data) {
+
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    lista.innerHTML = "<i>No hay registros</i>";
+    return;
+  }
+
+  data.forEach(r => {
+
+    const div = document.createElement("div");
+    div.className = "card registro";
+
+    div.innerHTML = `
+      <b>ID:</b> ${r[0]}<br>
+      <b>Empresa:</b> ${r[1]}<br>
+      <b>Solicitante:</b> ${r[2]}<br>
+      <b>OC:</b> ${r[3]}<br>
+      <b>Lugar:</b> ${r[4]}<br>
+      <b>Técnico:</b> ${r[5]}<br>
+      <b>Motivo:</b> ${r[6]}<br>
+      <b>Patente:</b> ${r[7]}<br>
+      <b>Vehículo:</b> ${r[8]} / ${r[9]} / ${r[10]} / ${r[11]}<br>
+      <b>Radio:</b> ${r[12]} (${r[13]})<br>
+      <b>Tipo:</b> ${r[14]}<br>
+      <b>Fecha instalación:</b> ${formatFecha(r[16])}<br>
+
+      <div class="botones">
+        <button onclick="generarQR('${r[0]}')">🔲 Ver QR</button>
+        <button onclick="verInfoQR('${r[0]}')">📄 Ver info QR</button>
+      </div>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+// ✅ Aplicar filtros
+function aplicarFiltros() {
+
+  const fEmpresa = document.getElementById("f_empresa").value.toLowerCase();
+  const fPatente = document.getElementById("f_patente").value.toLowerCase();
+  const fRadio = document.getElementById("f_radio").value.toLowerCase();
+  const fMotivo = document.getElementById("f_motivo").value;
+  const fTipo = document.getElementById("f_tipo").value;
+
+  const filtrados = window.registrosGlobales.filter(r => {
+
+    if (fEmpresa && !r[1].toLowerCase().includes(fEmpresa)) return false;
+    if (fPatente && !r[7].toLowerCase().includes(fPatente)) return false;
+    if (fRadio && !r[12].toLowerCase().includes(fRadio)) return false;
+    if (fMotivo && r[6] !== fMotivo) return false;
+    if (fTipo && r[14] !== fTipo) return false;
+
+    return true;
+  });
+
+  mostrarRegistros(filtrados);
+}
+
+// ✅ Limpiar filtros
+function limpiarFiltros() {
+  document.getElementById("f_empresa").value = "";
+  document.getElementById("f_patente").value = "";
+  document.getElementById("f_radio").value = "";
+  document.getElementById("f_motivo").value = "";
+  document.getElementById("f_tipo").value = "";
+
+  mostrarRegistros(window.registrosGlobales);
+}
+
+// Cargar al abrir
 cargarRegistros();
 </script>
 
