@@ -263,7 +263,8 @@ function cargarRegistros() {
     });
 }
 
-// ✅ Generar QR
+let ultimoQR = "";
+
 function generarQR(id) {
   const url = `${BASE_WEB}/vista.html?id=${id}`;
 
@@ -274,9 +275,17 @@ function generarQR(id) {
   document.getElementById("qr").innerHTML = "";
 
   const img = document.createElement("img");
-  img.src = qr.createDataURL(6,4);
+  ultimoQR = qr.createDataURL(8,4);  // Más calidad
+
+  img.src = ultimoQR;
+  img.id = "imgQR";
+
   document.getElementById("qr").appendChild(img);
+
+  // Mostrar botón de descarga
+  document.getElementById("btnDescargarQR").style.display = "block";
 }
+
 
 // Cargar registros al abrir
 cargarRegistros();
