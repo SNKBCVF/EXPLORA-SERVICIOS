@@ -53,10 +53,20 @@ button:hover {
   line-height: 1.4;
 }
 
+.botones {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.botones button {
+  flex: 1;
+}
+
 #qr img {
   margin-top: 10px;
-  width: 160px;
-  max-width: 100%;
+  width: 200px;
 }
 </style>
 </head>
@@ -66,7 +76,7 @@ button:hover {
 <h2>📡 Registro de Mantención de Radios - Explora Servicios</h2>
 
 <div class="card">
-  <label>ID del radio (solo si ya existe, para actualizar)</label>
+  <label>ID del radio (solo si ya existe)</label>
   <input id="id_radio" placeholder="Ej: RADIO-1764018271408">
 </div>
 
@@ -78,16 +88,15 @@ button:hover {
   <input id="lugar" placeholder="Lugar operación">
   <input id="tecnico" placeholder="Nombre técnico">
 
-<label>Motivo intervención</label>
-<select id="motivo">
-  <option>Instalación</option>
-  <option>Mantención</option>
-  <option>Falla</option>
-  <option>Reparación</option>
-  <option>Venta</option>
-  <option>No corresponde</option>
-</select>
-
+  <label>Motivo intervención</label>
+  <select id="motivo">
+    <option>Instalación</option>
+    <option>Mantención</option>
+    <option>Falla</option>
+    <option>Reparación</option>
+    <option>Venta</option>
+    <option>No corresponde</option>
+  </select>
 </div>
 
 <div class="card">
@@ -112,14 +121,13 @@ button:hover {
   <input id="modelo_radio" placeholder="Modelo radio">
   <input id="serie" placeholder="Número de serie">
 
-<label>Tipo servicio</label>
-<select id="tipo_servicio">
-  <option>Mantención</option>
-  <option>Instalación</option>
-  <option>Revisión</option>
-  <option>Venta</option>
-</select>
-
+  <label>Tipo servicio</label>
+  <select id="tipo_servicio">
+    <option>Mantención</option>
+    <option>Instalación</option>
+    <option>Revisión</option>
+    <option>Venta</option>
+  </select>
 </div>
 
 <div class="card">
@@ -142,25 +150,27 @@ button:hover {
   📥 Descargar QR en JPG
 </button>
 
-
-<h3>📋 Registros actuales (REGISTRO_ACTUAL)</h3>
+<h3>📋 Registros actuales</h3>
 <div id="lista"></div>
 
 <script>
-// 👇 Pega aquí la URL de tu Apps Script
-const API_URL = "https://script.google.com/macros/s/AKfycbylwgXIa1SWeW2wDVZ_Vj1L3dHXMlUAAHGQg15LkobehRma6xa9z21WJSWcTMLlScT9/exec"; 
+// 🔴 PEGA AQUÍ TU URL DE APPS SCRIPT
+const API_URL = "https://script.google.com/macros/s/AKfycbylwgXIa1SWeW2wDVZ_Vj1L3dHXMlUAAHGQg15LkobehRma6xa9z21WJSWcTMLlScT9/exec";
 
-// URL base de tu GitHub Pages
+// 🔵 URL base de tu GitHub Pages
 const BASE_WEB = "https://snkbcvf.github.io/EXPLORA-SERVICIOS";
+
+let ultimoQRBase64 = "";
+let ultimoID = "";
 
 function generarID() {
   return "RADIO-" + Date.now();
 }
 
 function formatFecha(f) {
-  if(!f) return "";
+  if (!f) return "";
   const d = new Date(f);
-  if (isNaN(d)) return f; // por si viene ya formateada
+  if (isNaN(d)) return f;
   return d.toLocaleDateString("es-CL");
 }
 
@@ -169,10 +179,10 @@ function calcularProxMant(fechaBase) {
   const d = new Date(fechaBase);
   if (isNaN(d)) return "";
   d.setMonth(d.getMonth() + 6);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`; // formato YYYY-MM-DD
+  return `${y}-${m}-${day}`;
 }
 
 // ✅ Guardar registro
@@ -180,6 +190,8 @@ function guardarRegistro() {
 
   let id = document.getElementById("id_radio").value.trim();
   if (!id) id = generarID();
+
+  ultimoID = id;
 
   const fechaBase = fecha_instalacion.value || fecha_venta.value;
   const proxMant = calcularProxMant(fechaBase);
@@ -206,10 +218,9 @@ function guardarRegistro() {
     observaciones: observaciones.value
   };
 
-  // Enviamos al Apps Script (fire & forget)
   fetch(API_URL, {
     method: "POST",
-    mode: "no-cors",              // evitamos el error "Failed to fetch"
+    mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(datos)
   });
@@ -217,11 +228,71 @@ function guardarRegistro() {
   generarQR(id);
   document.getElementById("id_radio").value = id;
 
-  // Damos un tiempo a que Google escriba y luego recargamos
   setTimeout(cargarRegistros, 1500);
 }
 
-// ✅ Cargar registros desde REGISTRO_ACTUAL
+// ✅ Generar QR y convertirlo a JPG real
+function generarQR(id) {
+
+  ultimoID = id;
+
+  const url = `${BASE_WEB}/vista.html?id=${id}`;
+
+  const qr = qrcode(0, "L");
+  qr.addData(url);
+  qr.make();
+
+  const qrDiv = document.getElementById("qr");
+  qrDiv.innerHTML = "";
+
+  const tempImg = new Image();
+  tempImg.src = qr.createDataURL(8, 4);
+
+  tempImg.onload = function() {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = tempImg.width;
+    canvas.height = tempImg.height;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(tempImg, 0, 0);
+
+    ultimoQRBase64 = canvas.toDataURL("image/jpeg", 0.95);
+
+    const imgFinal = document.createElement("img");
+    imgFinal.src = ultimoQRBase64;
+
+    qrDiv.appendChild(imgFinal);
+
+    document.getElementById("btnDescargarQR").style.display = "block";
+  };
+}
+
+// ✅ Descargar QR en JPG
+function descargarQR() {
+  if (!ultimoQRBase64) {
+    alert("Primero genera un QR");
+    return;
+  }
+
+  const link = document.createElement("a");
+  link.download = `QR_${ultimoID}.jpg`;
+  link.href = ultimoQRBase64;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ✅ Ver info QR
+function verInfoQR(id) {
+  const url = `${BASE_WEB}/vista.html?id=${id}`;
+  window.open(url, "_blank");
+}
+
+// ✅ Cargar registros
 function cargarRegistros() {
 
   fetch(API_URL + "?all=true")
@@ -237,6 +308,7 @@ function cargarRegistros() {
       }
 
       data.forEach(r => {
+
         const div = document.createElement("div");
         div.className = "card registro";
 
@@ -255,87 +327,23 @@ function cargarRegistros() {
           <b>Fecha venta:</b> ${formatFecha(r[15])}<br>
           <b>Fecha instalación:</b> ${formatFecha(r[16])}<br>
           <b>Próx mantención:</b> ${formatFecha(r[17])}<br>
-          <b>Observaciones:</b> ${r[18]}<br>
-          <button onclick="generarQR('${r[0]}')">Ver QR</button>
+          <b>Obs:</b> ${r[18]}<br>
+
+          <div class="botones">
+            <button onclick="generarQR('${r[0]}')">🔲 Ver QR</button>
+            <button onclick="verInfoQR('${r[0]}')">📄 Ver info QR</button>
+          </div>
         `;
 
         lista.appendChild(div);
       });
+
     })
     .catch(err => {
       console.error("Error cargando registros:", err);
       document.getElementById("lista").innerHTML = "⚠ No se pudieron cargar los registros";
     });
 }
-
-let ultimoQR = "";
-
-let ultimoQRBase64 = "";
-let ultimoID = "";
-
-function generarQR(id) {
-  ultimoID = id;
-
-  const url = `${BASE_WEB}/vista.html?id=${id}`;
-
-  const qr = qrcode(0, "L");
-  qr.addData(url);
-  qr.make();
-
-  document.getElementById("qr").innerHTML = "";
-
-  // Convertimos el QR a imagen base64 (PNG)
-  const tempImg = new Image();
-  tempImg.src = qr.createDataURL(8, 4);
-
-  tempImg.onload = function() {
-    // Creamos un canvas para convertirlo a JPG
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = tempImg.width;
-    canvas.height = tempImg.height;
-
-    // Fondo blanco para JPG
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Dibujar QR encima
-    ctx.drawImage(tempImg, 0, 0);
-
-    // Convertimos a JPG real
-    ultimoQRBase64 = canvas.toDataURL("image/jpeg", 0.95);
-
-    // Mostrar imagen en pantalla
-    const imgFinal = document.createElement("img");
-    imgFinal.src = ultimoQRBase64;
-    imgFinal.id = "imgQR";
-
-    document.getElementById("qr").appendChild(imgFinal);
-
-    // Mostrar botón
-    document.getElementById("btnDescargarQR").style.display = "block";
-  };
-}
-
-function descargarQR() {
-  if (!ultimoQRBase64) {
-    alert("Primero genera un QR");
-    return;
-  }
-
-  const link = document.createElement("a");
-
-  // Nombre automático con ID
-  link.download = `QR_${ultimoID}.jpg`;
-  link.href = ultimoQRBase64;
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-
 
 // Cargar registros al abrir
 cargarRegistros();
