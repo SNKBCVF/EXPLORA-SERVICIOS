@@ -150,8 +150,38 @@ button:hover {
   📥 Descargar QR en JPG
 </button>
 
+<h3>🔎 Filtros</h3>
+
+<div class="card">
+  <input id="f_empresa" placeholder="Filtrar por empresa">
+  <input id="f_patente" placeholder="Filtrar por patente">
+  <input id="f_radio" placeholder="Filtrar por modelo radio">
+
+  <select id="f_motivo">
+    <option value="">Todos los motivos</option>
+    <option>Instalación</option>
+    <option>Mantención</option>
+    <option>Falla</option>
+    <option>Reparación</option>
+    <option>Venta</option>
+    <option>No corresponde</option>
+  </select>
+
+  <select id="f_tipo">
+    <option value="">Todos los tipos</option>
+    <option>Mantención</option>
+    <option>Instalación</option>
+    <option>Revisión</option>
+    <option>Venta</option>
+  </select>
+
+  <button onclick="aplicarFiltros()">Aplicar filtros</button>
+  <button onclick="limpiarFiltros()">Limpiar filtros</button>
+</div>
+
 <h3>📋 Registros actuales</h3>
 <div id="lista"></div>
+
 
 <script>
 // 🔴 PEGA AQUÍ TU URL DE APPS SCRIPT
